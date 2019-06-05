@@ -1,0 +1,19 @@
+{
+  "name": "gt06-server",
+  "version": "1.0.0",
+  "author": "Andy Hempel",
+  "license": "ISC",
+  "description": "Server to receive and response to gt06 GPS Tracker messages",
+  "scripts": {
+    "start": "node app.js",
+    "test": "jest"
+  },
+  "keywords": [
+    "GPS",
+    "GT06",
+    "Tracker"
+  ],
+  "devDependencies": {
+    "jest": "^24.8.0"
+  }
+}
