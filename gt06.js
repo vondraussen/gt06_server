@@ -189,10 +189,10 @@ function parseStatus(data) {
 
 function parseLocation(data) {
     let datasheet = {
-        start_bit: data.readUInt16BE(0),
-        protocol_length: data.readUInt8(2),
-        protocol_number: data.readUInt8(3),
-        datetime: data.slice(4, 10),
+        startBit: data.readUInt16BE(0),
+        protocolLength: data.readUInt8(2),
+        protocolNumber: data.readUInt8(3),
+        fixTime: data.slice(4, 10),
         quantity: data.readUInt8(10),
         lat: data.readUInt32BE(11),
         lon: data.readUInt32BE(15),
@@ -201,30 +201,30 @@ function parseLocation(data) {
         mcc: data.readUInt16BE(22),
         mnc: data.readUInt8(24),
         lac: data.readUInt16BE(25),
-        cell_id: parseInt(data.slice(27, 30).toString('hex'), 16),
-        serial_number: data.readUInt16BE(30),
-        error_check: data.readUInt16BE(32)
+        cellId: parseInt(data.slice(27, 30).toString('hex'), 16),
+        serialNr: data.readUInt16BE(30),
+        errorCheck: data.readUInt16BE(32)
     };
 
     let parsed = {
-        datetime: parseDatetime(datasheet.datetime).toISOString(),
-        satellites: (datasheet.quantity & 0xF0) >> 4,
-        satellitesActive: (datasheet.quantity & 0x0F),
+        fixTime: parseDatetime(datasheet.fixTime).toISOString(),
+        satCnt: (datasheet.quantity & 0xF0) >> 4,
+        satCntActive: (datasheet.quantity & 0x0F),
         lat: decodeGt06Lat(datasheet.lat, datasheet.course),
         lon: decodeGt06Lon(datasheet.lon, datasheet.course),
         speed: datasheet.speed,
-        speed_unit: 'km/h',
-        real_time_gps: Boolean(datasheet.course & 0x2000),
-        gps_positioned: Boolean(datasheet.course & 0x1000),
-        east_longitude: !Boolean(datasheet.course & 0x0800),
-        north_latitude: Boolean(datasheet.course & 0x0400),
+        speedUnit: 'km/h',
+        realTimeGps: Boolean(datasheet.course & 0x2000),
+        gpsPositioned: Boolean(datasheet.course & 0x1000),
+        eastLongitude: !Boolean(datasheet.course & 0x0800),
+        northLatitude: Boolean(datasheet.course & 0x0400),
         course: (datasheet.course & 0x3FF),
         mcc: datasheet.mcc,
         mnc: datasheet.mnc,
         lac: datasheet.lac,
-        cell_id: datasheet.cell_id,
-        serial_number: datasheet.serial_number,
-        error_check: datasheet.error_check
+        cellId: datasheet.cellId,
+        serialNr: datasheet.serialNr,
+        errorCheck: datasheet.errorCheck
     };
     return parsed;
 }
@@ -232,10 +232,10 @@ function parseLocation(data) {
 // not tested! not sent by my tracker
 function parseAlarm(data) {
     let datasheet = {
-        start_bit: data.readUInt16BE(0),
-        protocol_length: data.readUInt8(2),
-        protocol_number: data.readUInt8(3),
-        datetime: data.slice(4, 10),
+        startBit: data.readUInt16BE(0),
+        protocolLength: data.readUInt8(2),
+        protocolNumber: data.readUInt8(3),
+        fixTime: data.slice(4, 10),
         quantity: data.readUInt8(10),
         lat: data.readUInt32BE(11),
         lon: data.readUInt32BE(15),
@@ -244,36 +244,36 @@ function parseAlarm(data) {
         mcc: data.readUInt16BE(22),
         mnc: data.readUInt8(24),
         lac: data.readUInt16BE(25),
-        cell_id: parseInt(data.slice(27, 30).toString('hex'), 16),
-        terminal_information: data.readUInt8(31),
-        voltage_level: data.readUInt8(32),
+        cellId: parseInt(data.slice(27, 30).toString('hex'), 16),
+        terminalInfo: data.readUInt8(31),
+        voltageLevel: data.readUInt8(32),
         gps_signal: data.readUInt8(33),
         alarm_lang: data.readUInt16BE(34),
-        serial_number: data.readUInt16BE(36),
-        error_check: data.readUInt16BE(38)
+        serialNr: data.readUInt16BE(36),
+        errorCheck: data.readUInt16BE(38)
     };
 
     let parsed = {
-        datetime: parseDatetime(datasheet.datetime),
-        satellites: (datasheet.quantity & 0xF0) >> 4,
-        satellitesActive: (datasheet.quantity & 0x0F),
+        fixTime: parseDatetime(datasheet.fixTime),
+        satCnt: (datasheet.quantity & 0xF0) >> 4,
+        satCntActive: (datasheet.quantity & 0x0F),
         lat: decodeGt06Lat(datasheet.lat, datasheet.course),
         lon: decodeGt06Lon(datasheet.lon, datasheet.course),
         speed: datasheet.speed,
-        speed_unit: 'km/h',
-        real_time_gps: Boolean(datasheet.course & 0x2000),
-        gps_positioned: Boolean(datasheet.course & 0x1000),
-        east_longitude: !Boolean(datasheet.course & 0x0800),
-        north_latitude: Boolean(datasheet.course & 0x0400),
+        speedUnit: 'km/h',
+        realTimeGps: Boolean(datasheet.course & 0x2000),
+        gpsPositioned: Boolean(datasheet.course & 0x1000),
+        eastLongitude: !Boolean(datasheet.course & 0x0800),
+        northLatitude: Boolean(datasheet.course & 0x0400),
         course: (datasheet.course & 0x3FF),
         mmc: datasheet.mnc,
-        cell_id: datasheet.cell_id,
-        terminal_information: datasheet.terminal_information,
-        voltage_level: datasheet.voltage_level,
+        cellId: datasheet.cellId,
+        terminalInfo: datasheet.terminalInfo,
+        voltageLevel: datasheet.voltageLevel,
         gps_signal: datasheet.gps_signal,
         alarm_lang: datasheet.alarm_lang,
-        serial_number: datasheet.serial_number,
-        error_check: datasheet.error_check
+        serialNr: datasheet.serialNr,
+        errorCheck: datasheet.errorCheck
     };
     return parsed;
 }
