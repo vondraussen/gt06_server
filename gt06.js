@@ -247,8 +247,8 @@ function parseAlarm(data) {
         cellId: parseInt(data.slice(27, 30).toString('hex'), 16),
         terminalInfo: data.readUInt8(31),
         voltageLevel: data.readUInt8(32),
-        gps_signal: data.readUInt8(33),
-        alarm_lang: data.readUInt16BE(34),
+        gpsSignal: data.readUInt8(33),
+        alarmLang: data.readUInt16BE(34),
         serialNr: data.readUInt16BE(36),
         errorCheck: data.readUInt16BE(38)
     };
@@ -270,8 +270,8 @@ function parseAlarm(data) {
         cellId: datasheet.cellId,
         terminalInfo: datasheet.terminalInfo,
         voltageLevel: datasheet.voltageLevel,
-        gps_signal: datasheet.gps_signal,
-        alarm_lang: datasheet.alarm_lang,
+        gpsSignal: datasheet.gpsSignal,
+        alarmLang: datasheet.alarmLang,
         serialNr: datasheet.serialNr,
         errorCheck: datasheet.errorCheck
     };
