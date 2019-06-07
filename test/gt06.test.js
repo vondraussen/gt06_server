@@ -1,4 +1,4 @@
-const Gt06 = require('./gt06');
+const Gt06 = require('../gt06');
 
 const login = new Buffer.from('78780d01012345678901234500018cdd0d0a', 'hex')
 const loginResult = {
