@@ -20,7 +20,7 @@ var server = net.createServer((client) => {
             return;
         }
         console.log(gt06);
-        if (gt06.expectsResonce) {
+        if (gt06.expectsResponse) {
             client.write(gt06.responseMsg);
         }
     });

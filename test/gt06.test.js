@@ -92,7 +92,7 @@ test('Login Test', () => {
     expect(gt06.event.number).toBe(loginResult.event.number);
     expect(gt06.event.string).toBe(loginResult.event.string);
     expect(gt06.imei).toBe(loginResult.parsed.imei);
-    expect(gt06.expectsResonce).toBe(loginResult.respondToClient);
+    expect(gt06.expectsResponse).toBe(loginResult.respondToClient);
     expect(gt06.responseMsg).toStrictEqual(loginResult.responseMsg);
 });
 

@@ -8,9 +8,11 @@ module.exports = Gt06 = function () {
     this.imei = null;
 }
 
+// if multiple message are in the buffer, it will store them in msgBuffer
+// the state of the last message will be represented in Gt06
 Gt06.prototype.parse = function (data) {
     this.msgBufferRaw.length = 0;
-    const parsed = { expectsResonce: false };
+    const parsed = { expectsResponse: false };
 
     if (!checkHeader(data)) {
         throw { error: 'unknown message header', header: data.slice(0, 2) };
@@ -22,7 +24,7 @@ Gt06.prototype.parse = function (data) {
             case 0x01: // login message
                 Object.assign(parsed, parseLogin(msg));
                 parsed.imei = parsed.imei;
-                parsed.expectsResonce = true;
+                parsed.expectsResponse = true;
                 parsed.responseMsg = createResponse(msg);
                 break;
             case 0x12: // location message
@@ -30,7 +32,7 @@ Gt06.prototype.parse = function (data) {
                 break;
             case 0x13: // status message
                 Object.assign(parsed, parseStatus(msg));
-                parsed.expectsResonce = true;
+                parsed.expectsResponse = true;
                 parsed.responseMsg = createResponse(msg);
                 break;
             // case 0x15:
