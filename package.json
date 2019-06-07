@@ -6,7 +6,8 @@
   "description": "Server to receive and response to gt06 GPS Tracker messages",
   "scripts": {
     "start": "node app.js",
-    "test": "jest"
+    "test": "jest",
+    "debug": "node --debug-brk --inspect ./node_modules/jest/bin/jest -i"
   },
   "keywords": [
     "GPS",

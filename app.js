@@ -1,10 +1,10 @@
 const Gt06 = require('./gt06');
 const net = require('net');
 
-const gt06 = new Gt06();
 const serverPort = 64459;
 
 var server = net.createServer((client) => {
+    var gt06 = new Gt06();
     console.log('client connected');
 
     client.on('close', () => {
@@ -13,15 +13,15 @@ var server = net.createServer((client) => {
 
     client.on('data', (data) => {
         try {
-            var msg = gt06.parse(data)
+            gt06.parse(data);
         }
         catch (e) {
             console.log('err', e);
             return;
         }
-        console.log(msg);
-        if (msg.respondToClient) {
-            client.write(msg.responseMsg);
+        console.log(gt06);
+        if (gt06.expectsResonce) {
+            client.write(gt06.responseMsg);
         }
     });
 });

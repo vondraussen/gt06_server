@@ -32,7 +32,7 @@ const statusResult = {
     parsed: {
         gsmSigStrength: "strong signal",
         terminalInfo: {
-            alarmType: "Normal",
+            alarmType: "normal",
             charging: false,
             gpsTracking: true,
             ignition: false,
@@ -69,54 +69,61 @@ const locationResult = {
         mnc: 3,
         north_latitude: true,
         real_time_gps: false,
-        satelites: 12,
-        satelitesActive: 10,
+        satellites: 12,
+        satellitesActive: 10,
         serial_number: 116,
         speed: 2,
-        speed_unit: "km/h",
-        stop_bit: 3338
+        speed_unit: "km/h"
     },
     respondToClient: false,
     responseMsg: null
 }
 
+const locationDouble = new Buffer.from('78781f1211071403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78781f1211072403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a', 'hex')
+const locationTripple = new Buffer.from('78781f1211071403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78781f1211072403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78781f1211073403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a', 'hex')
+const locationQuad = new Buffer.from('78781f1211071403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78781f1211072403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78780a13400504000000153dc20d0a78781f1211073403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a', 'hex')
+
 const unknown = new Buffer.from('70780d01012345678901234500018cdd0d0a', 'hex')
 
 test('Login Test', () => {
     var gt06 = new Gt06();
-    expect(gt06.parse(login).event.number).toBe(loginResult.event.number);
-    expect(gt06.parse(login).event.string).toBe(loginResult.event.string);
-    expect(gt06.parse(login).parsed.imei).toBe(loginResult.parsed.imei);
-    expect(gt06.parse(login).parsed.serialNumber).toBe(loginResult.parsed.serialNumber);
-    expect(gt06.parse(login).parsed.errorCheck).toBe(loginResult.parsed.errorCheck);
-    expect(gt06.parse(login).respondToClient).toBe(loginResult.respondToClient);
-    expect(gt06.parse(login).responseMsg).toStrictEqual(loginResult.responseMsg);
+    gt06.parse(login);
+
+    expect(gt06.event.number).toBe(loginResult.event.number);
+    expect(gt06.event.string).toBe(loginResult.event.string);
+    expect(gt06.imei).toBe(loginResult.parsed.imei);
+    expect(gt06.expectsResonce).toBe(loginResult.respondToClient);
+    expect(gt06.responseMsg).toStrictEqual(loginResult.responseMsg);
 });
 
 test('Status/Heartbeat Test', () => {
     var gt06 = new Gt06();
-    expect(gt06.parse(status).event.number).toBe(statusResult.event.number);
-    expect(gt06.parse(status).event.string).toBe(statusResult.event.string);
-    expect(gt06.parse(status).parsed.terminalInfo.alarmType).toBe(statusResult.parsed.terminalInfo.alarmType);
-    expect(gt06.parse(status).parsed.terminalInfo.charging).toBe(statusResult.parsed.terminalInfo.charging);
-    expect(gt06.parse(status).parsed.terminalInfo.gpsTracking).toBe(statusResult.parsed.terminalInfo.gpsTracking);
-    expect(gt06.parse(status).parsed.terminalInfo.ignition).toBe(statusResult.parsed.terminalInfo.ignition);
-    expect(gt06.parse(status).parsed.terminalInfo.relayState).toBe(statusResult.parsed.terminalInfo.relayState);
-    expect(gt06.parse(status).parsed.terminalInfo.status).toBe(statusResult.parsed.terminalInfo.status);
-    expect(gt06.parse(status).parsed.gsmSigStrength).toBe(statusResult.parsed.gsmSigStrength);
-    expect(gt06.parse(status).parsed.voltageLevel).toBe(statusResult.parsed.voltageLevel);
-    expect(gt06.parse(status).responseMsg).toStrictEqual(statusResult.responseMsg);
+    gt06.parse(status);
+    expect(gt06.event.number).toBe(statusResult.event.number);
+    expect(gt06.event.string).toBe(statusResult.event.string);
+    expect(gt06.terminalInfo.alarmType).toBe(statusResult.parsed.terminalInfo.alarmType);
+    expect(gt06.terminalInfo.charging).toBe(statusResult.parsed.terminalInfo.charging);
+    expect(gt06.terminalInfo.gpsTracking).toBe(statusResult.parsed.terminalInfo.gpsTracking);
+    expect(gt06.terminalInfo.ignition).toBe(statusResult.parsed.terminalInfo.ignition);
+    expect(gt06.terminalInfo.relayState).toBe(statusResult.parsed.terminalInfo.relayState);
+    expect(gt06.terminalInfo.status).toBe(statusResult.parsed.terminalInfo.status);
+    expect(gt06.gsmSigStrength).toBe(statusResult.parsed.gsmSigStrength);
+    expect(gt06.voltageLevel).toBe(statusResult.parsed.voltageLevel);
+    expect(gt06.responseMsg).toStrictEqual(statusResult.responseMsg);
 });
 
 test('Location Test', () => {
     var gt06 = new Gt06();
-    expect(gt06.parse(location).event.number).toBe(locationResult.event.number);
-    expect(gt06.parse(location).event.string).toBe(locationResult.event.string);
-    expect(gt06.parse(location).parsed).toStrictEqual(locationResult.parsed);
-    expect(gt06.parse(location).responseMsg).toStrictEqual(locationResult.responseMsg);
+    gt06.parse(location);
+    expect(gt06.event.number).toBe(locationResult.event.number);
+    expect(gt06.event.string).toBe(locationResult.event.string);
+    expect(gt06.course).toStrictEqual(locationResult.parsed.course);
+    expect(gt06.lat).toStrictEqual(locationResult.parsed.lat);
+    expect(gt06.lon).toStrictEqual(locationResult.parsed.lon);
+    expect(gt06.responseMsg).toBeUndefined();
 });
 
-test('Unknown Test', () => {
+test('Unknown Message Test', () => {
     var gt06 = new Gt06();
     try {
         gt06.parse(unknown);
@@ -128,3 +135,24 @@ test('Unknown Test', () => {
     }
 });
 
+test('IMEI Storage Test', () => {
+    var gt06 = new Gt06();
+    gt06.parse(login);
+    expect(gt06.imei).toBe(loginResult.parsed.imei);
+    gt06.parse(location);
+    expect(gt06.lat).toStrictEqual(locationResult.parsed.lat);
+    expect(gt06.lon).toStrictEqual(locationResult.parsed.lon);
+    expect(gt06.imei).toStrictEqual(loginResult.parsed.imei);
+});
+
+test('Multiple Messages Test', () => {
+    var gt06 = new Gt06();
+    gt06.parse(location);
+    expect(gt06.msgBufferRaw.length).toBe(1);
+    gt06.parse(locationDouble);
+    expect(gt06.msgBufferRaw.length).toBe(2);
+    gt06.parse(locationTripple);
+    expect(gt06.msgBufferRaw.length).toBe(3);
+    gt06.parse(locationQuad);
+    expect(gt06.msgBufferRaw.length).toBe(4);
+});

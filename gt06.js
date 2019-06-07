@@ -2,55 +2,66 @@
 // https://www.traccar.org/protocols/
 // https://dl.dropboxusercontent.com/s/sqtkulcj51zkria/GT06_GPS_Tracker_Communication_Protocol_v1.8.1.pdf
 const getCrc16 = require('./crc16');
-module.exports = Gt06 = function () { }
-
-Gt06.prototype.parse = function (data) {
-    let result;
-    let expectsResonce = false;
-    let responseMsg = null;
-    if (!this.checkHeader(data)) {
-        throw { error: 'unknown message header', header: data.slice(0, 2) };
-    }
-    switch (this.selectEvent(data).number) {
-        case 0x01:
-            result = this.parseLogin(data);
-            expectsResonce = true;
-            responseMsg = this.createResponse(data);
-            break;
-        case 0x12:
-            result = this.parseLocation(data);
-            break;
-        case 0x13:
-            result = this.parseStatus(data);
-            expectsResonce = true;
-            responseMsg = this.createResponse(data);
-            break;
-        // case 0x15:
-        //     //parseLocation(data);
-        //     break;
-        // case 0x16:
-        //     result = this.parseAlarm(data);
-        //     break;
-        // case 0x1A:
-        //     //parseLocation(data);
-        //     break;
-        // case 0x80:
-        //     //parseLocation(data);
-        //     break;
-        default:
-            result = 'unknown message type!'
-            break;
-    }
-    return {
-        dataPacket: data,
-        event: this.selectEvent(data),
-        respondToClient: expectsResonce,
-        responseMsg: responseMsg,
-        parsed: result
-    };
+module.exports = Gt06 = function () {
+    this.msgBufferRaw = new Array();
+    this.msgBuffer = new Array();
+    this.imei = null;
 }
 
-Gt06.prototype.checkHeader = function (data) {
+Gt06.prototype.parse = function (data) {
+    this.msgBufferRaw.length = 0;
+    const parsed = { expectsResonce: false };
+
+    if (!checkHeader(data)) {
+        throw { error: 'unknown message header', header: data.slice(0, 2) };
+    }
+
+    this.sliceMsgsInBuff(data);
+    this.msgBufferRaw.forEach((msg, idx) => {
+        switch (selectEvent(msg).number) {
+            case 0x01: // login message
+                Object.assign(parsed, parseLogin(msg));
+                parsed.imei = parsed.imei;
+                parsed.expectsResonce = true;
+                parsed.responseMsg = createResponse(msg);
+                break;
+            case 0x12: // location message
+                Object.assign(parsed, parseLocation(msg));
+                break;
+            case 0x13: // status message
+                Object.assign(parsed, parseStatus(msg));
+                parsed.expectsResonce = true;
+                parsed.responseMsg = createResponse(msg);
+                break;
+            // case 0x15:
+            //     //parseLocation(msg);
+            //     break;
+            // case 0x16:
+            //     result = parseAlarm(msg);
+            //     break;
+            // case 0x1A:
+            //     //parseLocation(msg);
+            //     break;
+            // case 0x80:
+            //     //parseLocation(msg);
+            //     break;
+            default:
+                throw {
+                    error: 'unknown message type',
+                    event: selectEvent(msg)
+                };
+                break;
+        }
+        parsed.event = selectEvent(msg);
+        if (idx === 0) {
+            Object.assign(this, parsed);
+        } else {
+            this.msgBuffer.push(parsed);
+        }
+    });
+}
+
+function checkHeader(data) {
     let header = data.slice(0, 2);
     if (!header.equals(Buffer.from('7878', 'hex'))) {
         return false;
@@ -58,7 +69,7 @@ Gt06.prototype.checkHeader = function (data) {
     return true;
 }
 
-Gt06.prototype.selectEvent = function (data) {
+function selectEvent(data) {
     let eventStr = 'unknown';
     switch (data[3]) {
         case 0x01:
@@ -80,37 +91,37 @@ Gt06.prototype.selectEvent = function (data) {
     return { number: data[3], string: eventStr };
 }
 
-Gt06.prototype.parseLogin = function (data) {
+function parseLogin(data) {
     return {
         imei: parseInt(data.slice(4, 12).toString('hex'), 10),
         serialNumber: data.readUInt16BE(12),
-        errorCheck: data.readUInt16BE(14)
+        // errorCheck: data.readUInt16BE(14)
     };
 }
 
-Gt06.prototype.parseStatus = function (data) {
+function parseStatus(data) {
     let statusInfo = data.slice(4, 9);
     let terminalInfo = statusInfo.slice(0, 1).readUInt8(0);
     let voltageLevel = statusInfo.slice(1, 2).readUInt8(0);
     let gsmSigStrength = statusInfo.slice(2, 3).readUInt8(0);
 
     let alarm = (terminalInfo & 0x38) >> 3;
-    let alarmType = 'Normal';
+    let alarmType = 'normal';
     switch (alarm) {
         case 1:
-            alarmType = 'Shock'
+            alarmType = 'shock'
             break;
         case 2:
-            alarmType = 'Power Cut'
+            alarmType = 'power cut'
             break;
         case 3:
-            alarmType = 'Low Battery'
+            alarmType = 'low battery'
             break;
         case 4:
-            alarmType = 'SOS'
+            alarmType = 'sos'
             break;
         default:
-            alarmType = 'Normal';
+            alarmType = 'normal';
             break;
     }
 
@@ -148,7 +159,7 @@ Gt06.prototype.parseStatus = function (data) {
             break;
     }
 
-    let gsmSigStrengthStr = 'no signla'; // how shall it send without signal :-D
+    let gsmSigStrengthStr = 'no signal'; // how shall it send without signal :-D
     switch (gsmSigStrength) {
         case 1:
             gsmSigStrengthStr = 'extremely weak signal';
@@ -163,7 +174,7 @@ Gt06.prototype.parseStatus = function (data) {
             gsmSigStrengthStr = 'strong signal';
             break;
         default:
-            gsmSigStrengthStr = 'no signla';
+            gsmSigStrengthStr = 'no signal';
             break;
     }
 
@@ -174,7 +185,7 @@ Gt06.prototype.parseStatus = function (data) {
     };
 }
 
-Gt06.prototype.parseLocation = function (data) {
+function parseLocation(data) {
     let datasheet = {
         start_bit: data.readUInt16BE(0),
         protocol_length: data.readUInt8(2),
@@ -190,16 +201,15 @@ Gt06.prototype.parseLocation = function (data) {
         lac: data.readUInt16BE(25),
         cell_id: parseInt(data.slice(27, 30).toString('hex'), 16),
         serial_number: data.readUInt16BE(30),
-        error_check: data.readUInt16BE(32),
-        stop_bit: data.readUInt16BE(34)
+        error_check: data.readUInt16BE(32)
     };
 
     let parsed = {
-        datetime: this.parseDatetime(datasheet.datetime).toISOString(),
-        satelites: (datasheet.quantity & 0xF0) >> 4,
-        satelitesActive: (datasheet.quantity & 0x0F),
-        lat: this.decodeGt06Lat(datasheet.lat, datasheet.course),
-        lon: this.decodeGt06Lon(datasheet.lon, datasheet.course),
+        datetime: parseDatetime(datasheet.datetime).toISOString(),
+        satellites: (datasheet.quantity & 0xF0) >> 4,
+        satellitesActive: (datasheet.quantity & 0x0F),
+        lat: decodeGt06Lat(datasheet.lat, datasheet.course),
+        lon: decodeGt06Lon(datasheet.lon, datasheet.course),
         speed: datasheet.speed,
         speed_unit: 'km/h',
         real_time_gps: Boolean(datasheet.course & 0x2000),
@@ -212,14 +222,13 @@ Gt06.prototype.parseLocation = function (data) {
         lac: datasheet.lac,
         cell_id: datasheet.cell_id,
         serial_number: datasheet.serial_number,
-        error_check: datasheet.error_check,
-        stop_bit: datasheet.stop_bit
+        error_check: datasheet.error_check
     };
     return parsed;
 }
 
 // not tested! not sent by my tracker
-Gt06.prototype.parseAlarm = function (data) {
+function parseAlarm(data) {
     let datasheet = {
         start_bit: data.readUInt16BE(0),
         protocol_length: data.readUInt8(2),
@@ -239,14 +248,13 @@ Gt06.prototype.parseAlarm = function (data) {
         gps_signal: data.readUInt8(33),
         alarm_lang: data.readUInt16BE(34),
         serial_number: data.readUInt16BE(36),
-        error_check: data.readUInt16BE(38),
-        stop_bit: data.readUInt16BE(40)
+        error_check: data.readUInt16BE(38)
     };
 
     let parsed = {
         datetime: parseDatetime(datasheet.datetime),
-        satelites: (datasheet.quantity & 0xF0) >> 4,
-        satelitesActive: (datasheet.quantity & 0x0F),
+        satellites: (datasheet.quantity & 0xF0) >> 4,
+        satellitesActive: (datasheet.quantity & 0x0F),
         lat: decodeGt06Lat(datasheet.lat, datasheet.course),
         lon: decodeGt06Lon(datasheet.lon, datasheet.course),
         speed: datasheet.speed,
@@ -263,27 +271,27 @@ Gt06.prototype.parseAlarm = function (data) {
         gps_signal: datasheet.gps_signal,
         alarm_lang: datasheet.alarm_lang,
         serial_number: datasheet.serial_number,
-        error_check: datasheet.error_check,
-        stop_bit: datasheet.stop_bit
+        error_check: datasheet.error_check
     };
     return parsed;
 }
 
-Gt06.prototype.createResponse = function (data) {
+function createResponse(data) {
     let respRaw = Buffer.from('787805FF0001d9dc0d0a', 'hex');
     // we put the protocol of the received message into the response message
     // at position byte 3 (0xFF in the raw message)
     respRaw[3] = data[3];
-    this.appendCrc16(respRaw);
+    appendCrc16(respRaw);
     return respRaw;
 }
 
-Gt06.prototype.parseDatetime = function (data) {
+function parseDatetime(data) {
     return new Date(
-        Date.UTC(data[0] + 2000, data[1] - 1, data[2], data[3], data[4], data[5]));
+        Date.UTC(
+            data[0] + 2000, data[1] - 1, data[2], data[3], data[4], data[5]));
 }
 
-Gt06.prototype.decodeGt06Lat = function (lat, course) {
+function decodeGt06Lat(lat, course) {
     var latitude = lat / 60.0 / 30000.0;
     if (!(course & 0x0400)) {
         latitude = -latitude;
@@ -291,7 +299,7 @@ Gt06.prototype.decodeGt06Lat = function (lat, course) {
     return Math.round(latitude * 1000000) / 1000000;
 }
 
-Gt06.prototype.decodeGt06Lon = function (lon, course) {
+function decodeGt06Lon(lon, course) {
     var longitude = lon / 60.0 / 30000.0;
     if (course & 0x0800) {
         longitude = -longitude;
@@ -299,8 +307,31 @@ Gt06.prototype.decodeGt06Lon = function (lon, course) {
     return Math.round(longitude * 1000000) / 1000000;
 }
 
-Gt06.prototype.appendCrc16 = function (data) {
+function appendCrc16(data) {
     // write the crc16 at the 4th position from the right (2 bytes)
     // the last two bytes are the line ending
     data.writeUInt16BE(getCrc16(data.slice(2, 6)).readUInt16BE(0), data.length - 4);
+}
+
+Gt06.prototype.sliceMsgsInBuff = function (data) {
+    let startPattern = new Buffer.from('7878', 'hex');
+    let nextStart = data.indexOf(startPattern, 2);
+
+    if (nextStart === -1) {
+        this.msgBufferRaw.push(new Buffer.from(data));
+        return this.msgBufferRaw.length;
+    }
+    this.msgBufferRaw.push(new Buffer.from(data.slice(0, nextStart)));
+    let redMsgBuff = new Buffer.from(data.slice(nextStart));
+
+    while (nextStart != -1) {
+        nextStart = redMsgBuff.indexOf(startPattern, 2);
+        if (nextStart === -1) {
+            this.msgBufferRaw.push(new Buffer.from(redMsgBuff));
+            break;
+        }
+        this.msgBufferRaw.push(new Buffer.from(redMsgBuff.slice(0, nextStart)));
+        redMsgBuff = new Buffer.from(redMsgBuff.slice(nextStart));
+    }
+    return this.msgBufferRaw.length;
 }
