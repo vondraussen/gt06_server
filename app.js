@@ -22,7 +22,12 @@ var mqttClient = Mqtt.connect(
         ca: TRUSTED_CA,
         username: brokerUser,
         password: brokerPasswd
-    });
+    }
+);
+
+mqttClient.on('error', (err) => {
+    console.error('MQTT Error:', err);
+});
 
 var server = net.createServer((client) => {
     var gt06 = new Gt06();

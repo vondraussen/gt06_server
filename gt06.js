@@ -55,11 +55,13 @@ Gt06.prototype.parse = function (data) {
                 break;
         }
         parsed.event = selectEvent(msg);
-        if (idx === 0) {
+        parsed.parseTime = Date.now();
+        // last message represents the obj state
+        // and all go to the buffer for looped forwarding in the app
+        if (idx === this.msgBufferRaw.length - 1) {
             Object.assign(this, parsed);
-        } else {
-            this.msgBuffer.push(parsed);
         }
+        this.msgBuffer.push(parsed);
     });
 }
 
