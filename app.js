@@ -33,6 +33,14 @@ var server = net.createServer((client) => {
     var gt06 = new Gt06();
     console.log('client connected');
 
+    server.on('error', (err) => {
+        console.error('server error', err);
+    });
+
+    client.on('error', (err) => {
+        console.error('client error', err);
+    });
+
     client.on('close', () => {
         console.log('client disconnected');
     });
