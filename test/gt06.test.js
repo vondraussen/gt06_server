@@ -145,7 +145,7 @@ test('IMEI Storage Test', () => {
     expect(gt06.imei).toStrictEqual(loginResult.parsed.imei);
 });
 
-test('Multiple Messages Test', () => {
+test('Multiple Messages in RawBuffer Test', () => {
     var gt06 = new Gt06();
     gt06.parse(location);
     expect(gt06.msgBufferRaw.length).toBe(1);
@@ -155,4 +155,16 @@ test('Multiple Messages Test', () => {
     expect(gt06.msgBufferRaw.length).toBe(3);
     gt06.parse(locationQuad);
     expect(gt06.msgBufferRaw.length).toBe(4);
+});
+
+test('Multiple Messages in MsgBuffer Test', () => {
+    var gt06 = new Gt06();
+    gt06.parse(location);
+    expect(gt06.msgBufferRaw.length).toBe(1);
+    gt06.parse(locationDouble);
+    gt06.parse(locationTripple);
+    gt06.parse(locationQuad);
+    expect(gt06.msgBuffer.length).toBe(10);
+    gt06.clearMsgBuffer();
+    expect(gt06.msgBuffer.length).toBe(0);
 });

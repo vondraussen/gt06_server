@@ -65,6 +65,10 @@ Gt06.prototype.parse = function (data) {
     });
 }
 
+Gt06.prototype.clearMsgBuffer = function () {
+    this.msgBuffer.length = 0;
+}
+
 function checkHeader(data) {
     let header = data.slice(0, 2);
     if (!header.equals(Buffer.from('7878', 'hex'))) {
