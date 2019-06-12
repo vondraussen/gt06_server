@@ -18,7 +18,7 @@ Gt06.prototype.parse = function (data) {
         throw { error: 'unknown message header', msg: data };
     }
 
-    this.sliceMsgsInBuff(data);
+    this.msgBufferRaw = sliceMsgsInBuff(data).slice();
     this.msgBufferRaw.forEach((msg, idx) => {
         switch (selectEvent(msg).number) {
             case 0x01: // login message
@@ -317,25 +317,26 @@ function appendCrc16(data) {
     data.writeUInt16BE(getCrc16(data.slice(2, 6)).readUInt16BE(0), data.length - 4);
 }
 
-Gt06.prototype.sliceMsgsInBuff = function (data) {
+function sliceMsgsInBuff(data) {
     let startPattern = new Buffer.from('7878', 'hex');
     let nextStart = data.indexOf(startPattern, 2);
+    let msgArray = new Array();
 
     if (nextStart === -1) {
-        this.msgBufferRaw.push(new Buffer.from(data));
-        return this.msgBufferRaw.length;
+        msgArray.push(new Buffer.from(data));
+        return msgArray;
     }
-    this.msgBufferRaw.push(new Buffer.from(data.slice(0, nextStart)));
+    msgArray.push(new Buffer.from(data.slice(0, nextStart)));
     let redMsgBuff = new Buffer.from(data.slice(nextStart));
 
     while (nextStart != -1) {
         nextStart = redMsgBuff.indexOf(startPattern, 2);
         if (nextStart === -1) {
-            this.msgBufferRaw.push(new Buffer.from(redMsgBuff));
-            break;
+            msgArray.push(new Buffer.from(redMsgBuff));
+            return msgArray;
         }
-        this.msgBufferRaw.push(new Buffer.from(redMsgBuff.slice(0, nextStart)));
+        msgArray.push(new Buffer.from(redMsgBuff.slice(0, nextStart)));
         redMsgBuff = new Buffer.from(redMsgBuff.slice(nextStart));
     }
-    return this.msgBufferRaw.length;
+    return msgArray;
 }
