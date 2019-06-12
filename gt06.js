@@ -15,7 +15,7 @@ Gt06.prototype.parse = function (data) {
     const parsed = { expectsResponse: false };
 
     if (!checkHeader(data)) {
-        throw { error: 'unknown message header', header: data.slice(0, 2) };
+        throw { error: 'unknown message header', msg: data };
     }
 
     this.sliceMsgsInBuff(data);

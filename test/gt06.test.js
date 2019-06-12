@@ -130,7 +130,7 @@ test('Unknown Message Test', () => {
     } catch (e) {
         expect(e).toEqual({
             error: 'unknown message header',
-            header: new Buffer.from('7078', 'hex')
+            msg: unknown
         });
     }
 });
