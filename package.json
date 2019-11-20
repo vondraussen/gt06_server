@@ -17,10 +17,10 @@
     "Gateway"
   ],
   "devDependencies": {
-    "jest": "^24.8.0"
+    "jest": "^24.9.0"
   },
   "dependencies": {
-    "dotenv": "^8.0.0",
+    "dotenv": "^8.2.0",
     "mqtt": "^3.0.0"
   }
 }
