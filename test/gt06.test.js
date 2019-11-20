@@ -79,6 +79,10 @@ const locationResult = {
     responseMsg: null
 }
 
+const timeTest = new Buffer.from('78781f1213051d0d2506c8055dae3900ec0a9584355f010603b7fc0095fe0030bfb30d0a', 'hex')
+const timeTestResult = { fixTime: "2019-06-19T10:37:06.000Z" }
+// 2019-06-19T10:12:36.075Z
+
 const locationDouble = new Buffer.from('78781f1211071403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78781f1211072403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a', 'hex')
 const locationTripple = new Buffer.from('78781f1211071403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78781f1211072403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78781f1211073403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a', 'hex')
 const locationQuad = new Buffer.from('78781f1211071403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78781f1211072403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a78780a13400504000000153dc20d0a78781f1211073403362aca0543ec4f00ff976e021549010603e6b500e7590074763d0d0a', 'hex')
@@ -167,4 +171,12 @@ test('Multiple Messages in MsgBuffer Test', () => {
     expect(gt06.msgBuffer.length).toBe(10);
     gt06.clearMsgBuffer();
     expect(gt06.msgBuffer.length).toBe(0);
+});
+
+// 2019-06-19T10:12:36.075Z
+// 13 05 1d 0d 25 06 c8055dae3900ec0a9584355f010603b7fc0095fe0030bfb30d0a
+test('Time Test', () => {
+    var gt06 = new Gt06();
+    gt06.parse(timeTest);
+    expect(gt06.fixTime).toBe(timeTestResult.fixTime);
 });
