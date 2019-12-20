@@ -1,6 +1,6 @@
 {
   "name": "gt06-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Andy Hempel",
   "license": "ISC",
   "description": "Server/Gateway to receive and response to gt06 GPS Tracker messages and forward the parsed content via MQTT",
