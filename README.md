@@ -1,3 +1,4 @@
+> This repo is depricated! Take a look at [vondraussen/gt06](https://github.com/vondraussen/gt06) and [vondraussen/gps_tracker_gateway](https://github.com/vondraussen/gps_tracker_gateway)
 # GT06 Server
 This is a GT06 GPS Tracker server implementation  written in javascript.
 It parses all messages received from the device and creates the response message, if needed.
